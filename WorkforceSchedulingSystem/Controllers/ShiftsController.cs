@@ -1,11 +1,13 @@
-﻿using Application.Interfaces.Repositories;
+using Asp.Versioning;
+using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     [ApiController]
-    [Route("api/shifts")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class ShiftsController : ControllerBase
     {
         private readonly IShiftRepository _shiftRepository;
@@ -29,7 +31,9 @@ namespace API.Controllers
         {
             var shift = _shiftRepository.GetById(id);
             if (shift == null)
+            {
                 return NotFound();
+            }
 
             return Ok(shift);
         }
@@ -43,8 +47,7 @@ namespace API.Controllers
             var shift = new Shift(
                 request.Date,
                 request.StartTime,
-                request.EndTime
-            );
+                request.EndTime);
 
             await _shiftRepository.AddAsync(shift, cancellationToken);
             return Ok(shift);
@@ -59,7 +62,9 @@ namespace API.Controllers
         {
             var shift = _shiftRepository.GetById(id);
             if (shift == null)
+            {
                 return NotFound();
+            }
 
             shift.AssignEmployee(employeeId);
             await _shiftRepository.UpdateAsync(shift, cancellationToken);
@@ -73,7 +78,9 @@ namespace API.Controllers
         {
             var shift = _shiftRepository.GetById(id);
             if (shift == null)
+            {
                 return NotFound();
+            }
 
             shift.OpenForPickup();
             await _shiftRepository.UpdateAsync(shift, cancellationToken);
@@ -82,7 +89,6 @@ namespace API.Controllers
         }
     }
 
-    // DTO (keep it simple and local)
     public class CreateShiftRequest
     {
         public DateOnly Date { get; set; }

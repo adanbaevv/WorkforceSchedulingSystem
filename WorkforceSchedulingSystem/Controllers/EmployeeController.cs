@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Repositories;
+using Asp.Versioning;
+using Application.Interfaces.Repositories;
 using API.Dtos.Employees;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [ApiController]
-    [Route("api/employees")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class EmployeesController : ControllerBase
     {
         private readonly IEmployeeRepository _employeeRepository;
@@ -31,7 +33,9 @@ namespace API.Controllers
             var employee = _employeeRepository.GetById(id);
 
             if (employee == null)
+            {
                 return NotFound();
+            }
 
             return Ok(employee);
         }
@@ -59,10 +63,12 @@ namespace API.Controllers
             var employee = _employeeRepository.GetById(id);
 
             if (employee == null)
+            {
                 return NotFound();
+            }
 
-            employee.UpdateProfile(dto.FullName, dto.Email); // DOMAIN LOGIC
-            await _employeeRepository.UpdateAsync(employee, cancellationToken); // PERSISTENCE
+            employee.UpdateProfile(dto.FullName, dto.Email);
+            await _employeeRepository.UpdateAsync(employee, cancellationToken);
 
             return NoContent();
         }
@@ -77,7 +83,9 @@ namespace API.Controllers
             var employee = _employeeRepository.GetById(id);
 
             if (employee == null)
+            {
                 return NotFound();
+            }
 
             employee.ChangeRole(dto.Role);
             await _employeeRepository.UpdateAsync(employee, cancellationToken);
@@ -92,7 +100,9 @@ namespace API.Controllers
             var employee = _employeeRepository.GetById(id);
 
             if (employee == null)
+            {
                 return NotFound();
+            }
 
             employee.Deactivate();
             await _employeeRepository.UpdateAsync(employee, cancellationToken);
