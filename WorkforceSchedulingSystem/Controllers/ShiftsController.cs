@@ -36,7 +36,9 @@ namespace API.Controllers
 
         // POST: api/shifts
         [HttpPost]
-        public IActionResult Create([FromBody] CreateShiftRequest request)
+        public async Task<IActionResult> Create(
+            [FromBody] CreateShiftRequest request,
+            CancellationToken cancellationToken)
         {
             var shift = new Shift(
                 request.Date,
@@ -44,34 +46,37 @@ namespace API.Controllers
                 request.EndTime
             );
 
-            _shiftRepository.Add(shift);
+            await _shiftRepository.AddAsync(shift, cancellationToken);
             return Ok(shift);
         }
 
         // PUT: api/shifts/{id}/assign/{employeeId}
         [HttpPut("{id}/assign/{employeeId}")]
-        public IActionResult AssignEmployee(Guid id, Guid employeeId)
+        public async Task<IActionResult> AssignEmployee(
+            Guid id,
+            Guid employeeId,
+            CancellationToken cancellationToken)
         {
             var shift = _shiftRepository.GetById(id);
             if (shift == null)
                 return NotFound();
 
             shift.AssignEmployee(employeeId);
-            _shiftRepository.Update(shift);
+            await _shiftRepository.UpdateAsync(shift, cancellationToken);
 
             return Ok();
         }
 
         // PUT: api/shifts/{id}/open
         [HttpPut("{id}/open")]
-        public IActionResult OpenForPickup(Guid id)
+        public async Task<IActionResult> OpenForPickup(Guid id, CancellationToken cancellationToken)
         {
             var shift = _shiftRepository.GetById(id);
             if (shift == null)
                 return NotFound();
 
             shift.OpenForPickup();
-            _shiftRepository.Update(shift);
+            await _shiftRepository.UpdateAsync(shift, cancellationToken);
 
             return Ok();
         }

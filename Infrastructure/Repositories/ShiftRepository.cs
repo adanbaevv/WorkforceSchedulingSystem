@@ -27,10 +27,16 @@ namespace Infrastructure.Repositories
                 .Where(s => s.Status == ShiftStatus.OpenForPickup)
                 .ToList();
 
-        public void Add(Shift shift)
-            => _context.Shifts.Add(shift);
+        public async Task AddAsync(Shift shift, CancellationToken cancellationToken = default)
+        {
+            _context.Shifts.Add(shift);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
-        public void Update(Shift shift)
-            => _context.Shifts.Update(shift);
+        public async Task UpdateAsync(Shift shift, CancellationToken cancellationToken = default)
+        {
+            _context.Shifts.Update(shift);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

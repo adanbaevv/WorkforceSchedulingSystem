@@ -24,10 +24,16 @@ namespace Infrastructure.Repositories
         public IEnumerable<Employee> GetAll()
             => _context.Employees.ToList();
 
-        public void Add(Employee employee)
-            => _context.Employees.Add(employee);
+        public async Task AddAsync(Employee employee, CancellationToken cancellationToken = default)
+        {
+            _context.Employees.Add(employee);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
-        public void Update(Employee employee)
-            => _context.Employees.Update(employee);
+        public async Task UpdateAsync(Employee employee, CancellationToken cancellationToken = default)
+        {
+            _context.Employees.Update(employee);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

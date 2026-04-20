@@ -11,7 +11,7 @@ namespace Application.Interfaces.Repositories
     {
         Employee GetById(Guid id);
         IEnumerable<Employee> GetAll();
-        void Add(Employee employee);
-        void Update(Employee employee);
+        Task AddAsync(Employee employee, CancellationToken cancellationToken = default);
+        Task UpdateAsync(Employee employee, CancellationToken cancellationToken = default);
     }
 }

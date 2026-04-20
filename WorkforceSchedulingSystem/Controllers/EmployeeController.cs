@@ -38,18 +38,23 @@ namespace API.Controllers
 
         // POST: api/employees
         [HttpPost]
-        public IActionResult Create([FromBody] CreateEmployeeDto dto)
+        public async Task<IActionResult> Create(
+            [FromBody] CreateEmployeeDto dto,
+            CancellationToken cancellationToken)
         {
             var employee = new Employee(dto.FullName, dto.Email, dto.Role);
 
-            _employeeRepository.Add(employee);
+            await _employeeRepository.AddAsync(employee, cancellationToken);
 
             return CreatedAtAction(nameof(GetById), new { id = employee.Id }, employee);
         }
 
         // PUT: api/employees/{id}
         [HttpPut("{id}")]
-        public IActionResult Update(Guid id, [FromBody] UpdateEmployeeDto dto)
+        public async Task<IActionResult> Update(
+            Guid id,
+            [FromBody] UpdateEmployeeDto dto,
+            CancellationToken cancellationToken)
         {
             var employee = _employeeRepository.GetById(id);
 
@@ -57,14 +62,17 @@ namespace API.Controllers
                 return NotFound();
 
             employee.UpdateProfile(dto.FullName, dto.Email); // DOMAIN LOGIC
-            _employeeRepository.Update(employee);            // PERSISTENCE
+            await _employeeRepository.UpdateAsync(employee, cancellationToken); // PERSISTENCE
 
             return NoContent();
         }
 
         // PUT: api/employees/{id}/role
         [HttpPut("{id}/role")]
-        public IActionResult ChangeRole(Guid id, [FromBody] ChangeEmployeeRoleDto dto)
+        public async Task<IActionResult> ChangeRole(
+            Guid id,
+            [FromBody] ChangeEmployeeRoleDto dto,
+            CancellationToken cancellationToken)
         {
             var employee = _employeeRepository.GetById(id);
 
@@ -72,14 +80,14 @@ namespace API.Controllers
                 return NotFound();
 
             employee.ChangeRole(dto.Role);
-            _employeeRepository.Update(employee);
+            await _employeeRepository.UpdateAsync(employee, cancellationToken);
 
             return NoContent();
         }
 
         // PUT: api/employees/{id}/deactivate
         [HttpPut("{id}/deactivate")]
-        public IActionResult Deactivate(Guid id)
+        public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
         {
             var employee = _employeeRepository.GetById(id);
 
@@ -87,7 +95,7 @@ namespace API.Controllers
                 return NotFound();
 
             employee.Deactivate();
-            _employeeRepository.Update(employee);
+            await _employeeRepository.UpdateAsync(employee, cancellationToken);
 
             return NoContent();
         }

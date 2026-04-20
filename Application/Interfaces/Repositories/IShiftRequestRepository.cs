@@ -11,7 +11,7 @@ namespace Application.Interfaces.Repositories
     {
         ShiftRequest GetById(Guid id);
         IEnumerable<ShiftRequest> GetPending();
-        void Add(ShiftRequest request);
-        void Update(ShiftRequest request);
+        Task AddAsync(ShiftRequest request, CancellationToken cancellationToken = default);
+        Task UpdateAsync(ShiftRequest request, CancellationToken cancellationToken = default);
     }
 }

@@ -11,7 +11,7 @@ namespace Application.Interfaces.Repositories
     {
         Shift GetById(Guid id);
         IEnumerable<Shift> GetOpenShifts();
-        void Add(Shift shift);
-        void Update(Shift shift);
+        Task AddAsync(Shift shift, CancellationToken cancellationToken = default);
+        Task UpdateAsync(Shift shift, CancellationToken cancellationToken = default);
     }
 }

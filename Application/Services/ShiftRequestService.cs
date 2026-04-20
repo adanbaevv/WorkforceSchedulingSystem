@@ -16,18 +16,18 @@ namespace Application.Services
             _requestRepository = requestRepository;
         }
 
-        public void ApproveRequest(Guid requestId)
+        public async Task ApproveRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
         {
             var request = _requestRepository.GetById(requestId);
             request.Approve();
-            _requestRepository.Update(request);
+            await _requestRepository.UpdateAsync(request, cancellationToken);
         }
 
-        public void RejectRequest(Guid requestId)
+        public async Task RejectRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
         {
             var request = _requestRepository.GetById(requestId);
             request.Reject();
-            _requestRepository.Update(request);
+            await _requestRepository.UpdateAsync(request, cancellationToken);
         }
     }
 }

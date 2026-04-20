@@ -27,10 +27,16 @@ namespace Infrastructure.Repositories
                 .Where(r => r.Status == ShiftRequestStatus.Pending)
                 .ToList();
 
-        public void Add(ShiftRequest request)
-            => _context.ShiftRequests.Add(request);
+        public async Task AddAsync(ShiftRequest request, CancellationToken cancellationToken = default)
+        {
+            _context.ShiftRequests.Add(request);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
-        public void Update(ShiftRequest request)
-            => _context.ShiftRequests.Update(request);
+        public async Task UpdateAsync(ShiftRequest request, CancellationToken cancellationToken = default)
+        {
+            _context.ShiftRequests.Update(request);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

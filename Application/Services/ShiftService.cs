@@ -17,16 +17,19 @@ namespace Application.Services
             _shiftRepository = shiftRepository;
         }
 
-        public void AssignEmployee(Guid shiftId, Guid employeeId)
+        public async Task AssignEmployeeAsync(
+            Guid shiftId,
+            Guid employeeId,
+            CancellationToken cancellationToken = default)
         {
             var shift = _shiftRepository.GetById(shiftId);
             shift.AssignEmployee(employeeId);
-            _shiftRepository.Update(shift);
+            await _shiftRepository.UpdateAsync(shift, cancellationToken);
         }
 
-        public void OpenShift(Shift shift)
+        public async Task OpenShiftAsync(Shift shift, CancellationToken cancellationToken = default)
         {
-            _shiftRepository.Add(shift);
+            await _shiftRepository.AddAsync(shift, cancellationToken);
         }
     }
 }
