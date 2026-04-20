@@ -1,10 +1,6 @@
-﻿using Domain.Entities;
+using Domain.Common;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Data
 {
@@ -25,6 +21,20 @@ namespace Infrastructure.Data
             base.OnModelCreating(modelBuilder);
 
             // Optional: keep domain clean, config here
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var modifiedEntries = ChangeTracker
+                .Entries<BaseEntity>()
+                .Where(entry => entry.State == EntityState.Modified);
+
+            foreach (var entry in modifiedEntries)
+            {
+                entry.Property(entity => entity.UpdatedAt).CurrentValue = DateTime.UtcNow;
+            }
+
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

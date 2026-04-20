@@ -1,15 +1,10 @@
-﻿using Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Common;
+using Domain.Enums;
 
 namespace Domain.Entities
 {
-    public class ShiftRequest
+    public class ShiftRequest : BaseEntity
     {
-        public Guid Id { get; private set; }
         public Guid ShiftId { get; private set; }
         public Guid RequestedByEmployeeId { get; private set; }
         public ShiftRequestType RequestType { get; private set; }
@@ -20,7 +15,6 @@ namespace Domain.Entities
 
         public ShiftRequest(Guid shiftId, Guid employeeId, ShiftRequestType type)
         {
-            Id = Guid.NewGuid();
             ShiftId = shiftId;
             RequestedByEmployeeId = employeeId;
             RequestType = type;
@@ -38,5 +32,4 @@ namespace Domain.Entities
             Status = ShiftRequestStatus.Rejected;
         }
     }
-
 }
