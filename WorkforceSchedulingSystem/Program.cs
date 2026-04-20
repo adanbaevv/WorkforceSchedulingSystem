@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using Application;
+using API.Middleware;
 using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 // Middleware
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

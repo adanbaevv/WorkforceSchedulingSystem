@@ -1,10 +1,6 @@
-﻿using Application.Interfaces.Repositories;
+using Application.Common.Exceptions;
+using Application.Interfaces.Repositories;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services
 {
@@ -23,12 +19,22 @@ namespace Application.Services
             CancellationToken cancellationToken = default)
         {
             var shift = _shiftRepository.GetById(shiftId);
+            if (shift == null)
+            {
+                throw new NotFoundException($"Shift with id '{shiftId}' was not found.");
+            }
+
             shift.AssignEmployee(employeeId);
             await _shiftRepository.UpdateAsync(shift, cancellationToken);
         }
 
         public async Task OpenShiftAsync(Shift shift, CancellationToken cancellationToken = default)
         {
+            if (shift == null)
+            {
+                throw new ValidationException("Shift is required.");
+            }
+
             await _shiftRepository.AddAsync(shift, cancellationToken);
         }
     }

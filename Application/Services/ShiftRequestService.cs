@@ -1,9 +1,5 @@
-﻿using Application.Interfaces.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Application.Common.Exceptions;
+using Application.Interfaces.Repositories;
 
 namespace Application.Services
 {
@@ -19,6 +15,11 @@ namespace Application.Services
         public async Task ApproveRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
         {
             var request = _requestRepository.GetById(requestId);
+            if (request == null)
+            {
+                throw new NotFoundException($"Shift request with id '{requestId}' was not found.");
+            }
+
             request.Approve();
             await _requestRepository.UpdateAsync(request, cancellationToken);
         }
@@ -26,6 +27,11 @@ namespace Application.Services
         public async Task RejectRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
         {
             var request = _requestRepository.GetById(requestId);
+            if (request == null)
+            {
+                throw new NotFoundException($"Shift request with id '{requestId}' was not found.");
+            }
+
             request.Reject();
             await _requestRepository.UpdateAsync(request, cancellationToken);
         }
