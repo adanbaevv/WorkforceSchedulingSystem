@@ -15,12 +15,37 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task<IReadOnlyList<Shift>> GetAllAsync(CancellationToken cancellationToken = default)
+            => await _context.Shifts
+                .OrderBy(s => s.Date)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync(cancellationToken);
+
         public async Task<Shift?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
             => await _context.Shifts.FindAsync(new object[] { id }, cancellationToken);
 
         public async Task<IReadOnlyList<Shift>> GetOpenShiftsAsync(CancellationToken cancellationToken = default)
             => await _context.Shifts
                 .Where(s => s.Status == ShiftStatus.OpenForPickup)
+                .OrderBy(s => s.Date)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync(cancellationToken);
+
+        public async Task<IReadOnlyList<Shift>> GetByDateRangeAsync(
+            DateOnly startDate,
+            DateOnly endDate,
+            CancellationToken cancellationToken = default)
+            => await _context.Shifts
+                .Where(s => s.Date >= startDate && s.Date <= endDate)
+                .OrderBy(s => s.Date)
+                .ThenBy(s => s.StartTime)
+                .ToListAsync(cancellationToken);
+
+        public async Task<IReadOnlyList<Shift>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
+            => await _context.Shifts
+                .Where(s => s.AssignedEmployeeId == employeeId)
+                .OrderBy(s => s.Date)
+                .ThenBy(s => s.StartTime)
                 .ToListAsync(cancellationToken);
 
         public async Task AddAsync(Shift shift, CancellationToken cancellationToken = default)

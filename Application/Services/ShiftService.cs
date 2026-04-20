@@ -15,6 +15,16 @@ namespace Application.Services
         }
 
         /// <summary>
+        /// Retrieves all shifts ordered by date and start time.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of shifts.</returns>
+        public async Task<IReadOnlyList<Shift>> GetAllAsync(CancellationToken cancellationToken = default)
+        {
+            return await _shiftRepository.GetAllAsync(cancellationToken);
+        }
+
+        /// <summary>
         /// Retrieves all shifts currently open for pickup.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -22,6 +32,44 @@ namespace Application.Services
         public async Task<IReadOnlyList<Shift>> GetOpenShiftsAsync(CancellationToken cancellationToken = default)
         {
             return await _shiftRepository.GetOpenShiftsAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves shifts in an inclusive date range.
+        /// </summary>
+        /// <param name="startDate">The range start date.</param>
+        /// <param name="endDate">The range end date.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of shifts within the date range.</returns>
+        /// <exception cref="ValidationException">Thrown when the date range is invalid.</exception>
+        public async Task<IReadOnlyList<Shift>> GetByDateRangeAsync(
+            DateOnly startDate,
+            DateOnly endDate,
+            CancellationToken cancellationToken = default)
+        {
+            if (endDate < startDate)
+            {
+                throw new ValidationException("End date must be greater than or equal to start date.");
+            }
+
+            return await _shiftRepository.GetByDateRangeAsync(startDate, endDate, cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves shifts assigned to an employee.
+        /// </summary>
+        /// <param name="employeeId">The employee identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of shifts for the employee.</returns>
+        /// <exception cref="ValidationException">Thrown when the employee identifier is invalid.</exception>
+        public async Task<IReadOnlyList<Shift>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
+        {
+            if (employeeId == Guid.Empty)
+            {
+                throw new ValidationException("EmployeeId is required.");
+            }
+
+            return await _shiftRepository.GetByEmployeeAsync(employeeId, cancellationToken);
         }
 
         /// <summary>

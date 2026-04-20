@@ -19,6 +19,50 @@ namespace API.Controllers
         }
 
         /// <summary>
+        /// Retrieves all shifts.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of shifts.</returns>
+        [HttpGet]
+        public async Task<ActionResult<IReadOnlyList<ShiftDto>>> GetAll(CancellationToken cancellationToken)
+        {
+            var shifts = await _shiftService.GetAllAsync(cancellationToken);
+            return Ok(shifts.Select(MapToDto).ToList());
+        }
+
+        /// <summary>
+        /// Retrieves all shifts within an inclusive date range.
+        /// </summary>
+        /// <param name="startDate">The range start date.</param>
+        /// <param name="endDate">The range end date.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of shifts within the date range.</returns>
+        [HttpGet("by-date-range")]
+        public async Task<ActionResult<IReadOnlyList<ShiftDto>>> GetByDateRange(
+            [FromQuery] DateOnly startDate,
+            [FromQuery] DateOnly endDate,
+            CancellationToken cancellationToken)
+        {
+            var shifts = await _shiftService.GetByDateRangeAsync(startDate, endDate, cancellationToken);
+            return Ok(shifts.Select(MapToDto).ToList());
+        }
+
+        /// <summary>
+        /// Retrieves all shifts assigned to an employee.
+        /// </summary>
+        /// <param name="employeeId">The employee identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of employee shifts.</returns>
+        [HttpGet("employee/{employeeId:guid}")]
+        public async Task<ActionResult<IReadOnlyList<ShiftDto>>> GetByEmployee(
+            Guid employeeId,
+            CancellationToken cancellationToken)
+        {
+            var shifts = await _shiftService.GetByEmployeeAsync(employeeId, cancellationToken);
+            return Ok(shifts.Select(MapToDto).ToList());
+        }
+
+        /// <summary>
         /// Retrieves all shifts open for pickup.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
