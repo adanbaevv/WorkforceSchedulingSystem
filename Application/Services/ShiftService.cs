@@ -1,10 +1,11 @@
 using Application.Common.Exceptions;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using Domain.Entities;
 
 namespace Application.Services
 {
-    public class ShiftService
+    public class ShiftService : IShiftService
     {
         private readonly IShiftRepository _shiftRepository;
 
@@ -13,29 +14,89 @@ namespace Application.Services
             _shiftRepository = shiftRepository;
         }
 
-        public async Task AssignEmployeeAsync(
+        /// <summary>
+        /// Retrieves all shifts currently open for pickup.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of open shifts.</returns>
+        public async Task<IReadOnlyList<Shift>> GetOpenShiftsAsync(CancellationToken cancellationToken = default)
+        {
+            return await _shiftRepository.GetOpenShiftsAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Retrieves a shift by identifier.
+        /// </summary>
+        /// <param name="id">The shift identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The requested shift.</returns>
+        /// <exception cref="NotFoundException">Thrown when the shift does not exist.</exception>
+        public async Task<Shift> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var shift = await _shiftRepository.GetByIdAsync(id, cancellationToken);
+            return shift ?? throw new NotFoundException($"Shift with id '{id}' was not found.");
+        }
+
+        /// <summary>
+        /// Creates a new shift.
+        /// </summary>
+        /// <param name="date">The shift date.</param>
+        /// <param name="startTime">The shift start time.</param>
+        /// <param name="endTime">The shift end time.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The created shift.</returns>
+        /// <exception cref="ValidationException">Thrown when the input is invalid.</exception>
+        public async Task<Shift> CreateAsync(
+            DateOnly date,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            CancellationToken cancellationToken = default)
+        {
+            if (startTime >= endTime)
+            {
+                throw new ValidationException("Shift start time must be before end time.");
+            }
+
+            var shift = new Shift(date, startTime, endTime);
+            await _shiftRepository.AddAsync(shift, cancellationToken);
+
+            return shift;
+        }
+
+        /// <summary>
+        /// Assigns an employee to a shift.
+        /// </summary>
+        /// <param name="shiftId">The shift identifier.</param>
+        /// <param name="employeeId">The employee identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The updated shift.</returns>
+        /// <exception cref="NotFoundException">Thrown when the shift does not exist.</exception>
+        public async Task<Shift> AssignEmployeeAsync(
             Guid shiftId,
             Guid employeeId,
             CancellationToken cancellationToken = default)
         {
-            var shift = _shiftRepository.GetById(shiftId);
-            if (shift == null)
-            {
-                throw new NotFoundException($"Shift with id '{shiftId}' was not found.");
-            }
-
+            var shift = await GetByIdAsync(shiftId, cancellationToken);
             shift.AssignEmployee(employeeId);
             await _shiftRepository.UpdateAsync(shift, cancellationToken);
+
+            return shift;
         }
 
-        public async Task OpenShiftAsync(Shift shift, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Opens a shift for pickup.
+        /// </summary>
+        /// <param name="shiftId">The shift identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The updated shift.</returns>
+        /// <exception cref="NotFoundException">Thrown when the shift does not exist.</exception>
+        public async Task<Shift> OpenShiftAsync(Guid shiftId, CancellationToken cancellationToken = default)
         {
-            if (shift == null)
-            {
-                throw new ValidationException("Shift is required.");
-            }
+            var shift = await GetByIdAsync(shiftId, cancellationToken);
+            shift.OpenForPickup();
+            await _shiftRepository.UpdateAsync(shift, cancellationToken);
 
-            await _shiftRepository.AddAsync(shift, cancellationToken);
+            return shift;
         }
     }
 }

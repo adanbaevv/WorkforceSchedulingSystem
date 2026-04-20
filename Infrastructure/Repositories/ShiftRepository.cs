@@ -1,12 +1,8 @@
-﻿using Application.Interfaces.Repositories;
+using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
@@ -19,13 +15,13 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public Shift GetById(Guid id)
-            => _context.Shifts.Find(id);
+        public async Task<Shift?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => await _context.Shifts.FindAsync(new object[] { id }, cancellationToken);
 
-        public IEnumerable<Shift> GetOpenShifts()
-            => _context.Shifts
+        public async Task<IReadOnlyList<Shift>> GetOpenShiftsAsync(CancellationToken cancellationToken = default)
+            => await _context.Shifts
                 .Where(s => s.Status == ShiftStatus.OpenForPickup)
-                .ToList();
+                .ToListAsync(cancellationToken);
 
         public async Task AddAsync(Shift shift, CancellationToken cancellationToken = default)
         {

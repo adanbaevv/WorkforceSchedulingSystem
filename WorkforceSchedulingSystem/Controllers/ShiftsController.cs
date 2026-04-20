@@ -1,5 +1,6 @@
 using Asp.Versioning;
-using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
+using API.Dtos.Shifts;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,89 +11,104 @@ namespace API.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     public class ShiftsController : ControllerBase
     {
-        private readonly IShiftRepository _shiftRepository;
+        private readonly IShiftService _shiftService;
 
-        public ShiftsController(IShiftRepository shiftRepository)
+        public ShiftsController(IShiftService shiftService)
         {
-            _shiftRepository = shiftRepository;
+            _shiftService = shiftService;
         }
 
-        // GET: api/shifts/open
+        /// <summary>
+        /// Retrieves all shifts open for pickup.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of open shifts.</returns>
         [HttpGet("open")]
-        public IActionResult GetOpenShifts()
+        public async Task<ActionResult<IReadOnlyList<ShiftDto>>> GetOpenShifts(CancellationToken cancellationToken)
         {
-            var shifts = _shiftRepository.GetOpenShifts();
-            return Ok(shifts);
+            var shifts = await _shiftService.GetOpenShiftsAsync(cancellationToken);
+            return Ok(shifts.Select(MapToDto).ToList());
         }
 
-        // GET: api/shifts/{id}
-        [HttpGet("{id}")]
-        public IActionResult GetById(Guid id)
+        /// <summary>
+        /// Retrieves a shift by identifier.
+        /// </summary>
+        /// <param name="id">The shift identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The requested shift.</returns>
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<ShiftDto>> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var shift = _shiftRepository.GetById(id);
-            if (shift == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(shift);
+            var shift = await _shiftService.GetByIdAsync(id, cancellationToken);
+            return Ok(MapToDto(shift));
         }
 
-        // POST: api/shifts
+        /// <summary>
+        /// Creates a new shift.
+        /// </summary>
+        /// <param name="dto">The shift creation payload.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The created shift.</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(
-            [FromBody] CreateShiftRequest request,
+        public async Task<ActionResult<ShiftDto>> Create(
+            [FromBody] CreateShiftDto dto,
             CancellationToken cancellationToken)
         {
-            var shift = new Shift(
-                request.Date,
-                request.StartTime,
-                request.EndTime);
+            var shift = await _shiftService.CreateAsync(
+                dto.Date,
+                dto.StartTime,
+                dto.EndTime,
+                cancellationToken);
 
-            await _shiftRepository.AddAsync(shift, cancellationToken);
-            return Ok(shift);
+            var shiftDto = MapToDto(shift);
+            return CreatedAtAction(nameof(GetById), new { id = shiftDto.Id, version = "1.0" }, shiftDto);
         }
 
-        // PUT: api/shifts/{id}/assign/{employeeId}
-        [HttpPut("{id}/assign/{employeeId}")]
-        public async Task<IActionResult> AssignEmployee(
+        /// <summary>
+        /// Assigns an employee to a shift.
+        /// </summary>
+        /// <param name="id">The shift identifier.</param>
+        /// <param name="employeeId">The employee identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The updated shift.</returns>
+        [HttpPut("{id:guid}/assign/{employeeId:guid}")]
+        public async Task<ActionResult<ShiftDto>> AssignEmployee(
             Guid id,
             Guid employeeId,
             CancellationToken cancellationToken)
         {
-            var shift = _shiftRepository.GetById(id);
-            if (shift == null)
-            {
-                return NotFound();
-            }
-
-            shift.AssignEmployee(employeeId);
-            await _shiftRepository.UpdateAsync(shift, cancellationToken);
-
-            return Ok();
+            var shift = await _shiftService.AssignEmployeeAsync(id, employeeId, cancellationToken);
+            return Ok(MapToDto(shift));
         }
 
-        // PUT: api/shifts/{id}/open
-        [HttpPut("{id}/open")]
-        public async Task<IActionResult> OpenForPickup(Guid id, CancellationToken cancellationToken)
+        /// <summary>
+        /// Opens a shift for pickup.
+        /// </summary>
+        /// <param name="id">The shift identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The updated shift.</returns>
+        [HttpPut("{id:guid}/open")]
+        public async Task<ActionResult<ShiftDto>> OpenForPickup(Guid id, CancellationToken cancellationToken)
         {
-            var shift = _shiftRepository.GetById(id);
-            if (shift == null)
-            {
-                return NotFound();
-            }
-
-            shift.OpenForPickup();
-            await _shiftRepository.UpdateAsync(shift, cancellationToken);
-
-            return Ok();
+            var shift = await _shiftService.OpenShiftAsync(id, cancellationToken);
+            return Ok(MapToDto(shift));
         }
-    }
 
-    public class CreateShiftRequest
-    {
-        public DateOnly Date { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
+        private static ShiftDto MapToDto(Shift shift)
+        {
+            return new ShiftDto
+            {
+                Id = shift.Id,
+                Date = shift.Date,
+                StartTime = shift.StartTime,
+                EndTime = shift.EndTime,
+                Status = shift.Status,
+                AssignedEmployeeId = shift.AssignedEmployeeId,
+                IsActive = shift.IsActive,
+                CreatedAt = shift.CreatedAt,
+                UpdatedAt = shift.UpdatedAt,
+                TenantId = shift.TenantId
+            };
+        }
     }
 }
