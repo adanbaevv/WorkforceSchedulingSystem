@@ -1,14 +1,11 @@
-﻿using Application.Interfaces.Repositories;
+using Application.Common.Interfaces;
+using Application.Interfaces.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure
 {
@@ -25,6 +22,7 @@ namespace Infrastructure
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IShiftRepository, ShiftRepository>();
             services.AddScoped<IShiftRequestRepository, ShiftRequestRepository>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             return services;
         }
