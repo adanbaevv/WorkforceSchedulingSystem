@@ -1,5 +1,5 @@
 using Asp.Versioning;
-using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using API.Dtos.Employees;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -11,103 +11,124 @@ namespace API.Controllers
     [Route("api/v{version:apiVersion}/[controller]")]
     public class EmployeesController : ControllerBase
     {
-        private readonly IEmployeeRepository _employeeRepository;
+        private readonly IEmployeeService _employeeService;
 
-        public EmployeesController(IEmployeeRepository employeeRepository)
+        public EmployeesController(IEmployeeService employeeService)
         {
-            _employeeRepository = employeeRepository;
+            _employeeService = employeeService;
         }
 
-        // GET: api/employees
+        /// <summary>
+        /// Retrieves all employees.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A collection of employee records.</returns>
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<ActionResult<IReadOnlyList<EmployeeDto>>> GetAll(CancellationToken cancellationToken)
         {
-            var employees = _employeeRepository.GetAll();
-            return Ok(employees);
+            var employees = await _employeeService.GetAllAsync(cancellationToken);
+            return Ok(employees.Select(MapToDto).ToList());
         }
 
-        // GET: api/employees/{id}
-        [HttpGet("{id}")]
-        public IActionResult GetById(Guid id)
+        /// <summary>
+        /// Retrieves a single employee by identifier.
+        /// </summary>
+        /// <param name="id">The employee identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The requested employee.</returns>
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<EmployeeDto>> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var employee = _employeeRepository.GetById(id);
-
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(employee);
+            var employee = await _employeeService.GetByIdAsync(id, cancellationToken);
+            return Ok(MapToDto(employee));
         }
 
-        // POST: api/employees
+        /// <summary>
+        /// Creates a new employee.
+        /// </summary>
+        /// <param name="dto">The employee creation payload.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The created employee.</returns>
         [HttpPost]
-        public async Task<IActionResult> Create(
+        public async Task<ActionResult<EmployeeDto>> Create(
             [FromBody] CreateEmployeeDto dto,
             CancellationToken cancellationToken)
         {
-            var employee = new Employee(dto.FullName, dto.Email, dto.Role);
+            var employee = await _employeeService.CreateAsync(
+                dto.FullName,
+                dto.Email,
+                dto.Role,
+                cancellationToken);
 
-            await _employeeRepository.AddAsync(employee, cancellationToken);
-
-            return CreatedAtAction(nameof(GetById), new { id = employee.Id }, employee);
+            var employeeDto = MapToDto(employee);
+            return CreatedAtAction(nameof(GetById), new { id = employeeDto.Id, version = "1.0" }, employeeDto);
         }
 
-        // PUT: api/employees/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(
+        /// <summary>
+        /// Updates an existing employee.
+        /// </summary>
+        /// <param name="id">The employee identifier.</param>
+        /// <param name="dto">The employee update payload.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The updated employee.</returns>
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<EmployeeDto>> Update(
             Guid id,
             [FromBody] UpdateEmployeeDto dto,
             CancellationToken cancellationToken)
         {
-            var employee = _employeeRepository.GetById(id);
+            var employee = await _employeeService.UpdateAsync(
+                id,
+                dto.FullName,
+                dto.Email,
+                cancellationToken);
 
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            employee.UpdateProfile(dto.FullName, dto.Email);
-            await _employeeRepository.UpdateAsync(employee, cancellationToken);
-
-            return NoContent();
+            return Ok(MapToDto(employee));
         }
 
-        // PUT: api/employees/{id}/role
-        [HttpPut("{id}/role")]
-        public async Task<IActionResult> ChangeRole(
+        /// <summary>
+        /// Changes an employee role.
+        /// </summary>
+        /// <param name="id">The employee identifier.</param>
+        /// <param name="dto">The role change payload.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The updated employee.</returns>
+        [HttpPut("{id:guid}/role")]
+        public async Task<ActionResult<EmployeeDto>> ChangeRole(
             Guid id,
             [FromBody] ChangeEmployeeRoleDto dto,
             CancellationToken cancellationToken)
         {
-            var employee = _employeeRepository.GetById(id);
-
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            employee.ChangeRole(dto.Role);
-            await _employeeRepository.UpdateAsync(employee, cancellationToken);
-
-            return NoContent();
+            var employee = await _employeeService.ChangeRoleAsync(id, dto.Role, cancellationToken);
+            return Ok(MapToDto(employee));
         }
 
-        // PUT: api/employees/{id}/deactivate
-        [HttpPut("{id}/deactivate")]
-        public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
+        /// <summary>
+        /// Deactivates an employee.
+        /// </summary>
+        /// <param name="id">The employee identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The updated employee.</returns>
+        [HttpPut("{id:guid}/deactivate")]
+        public async Task<ActionResult<EmployeeDto>> Deactivate(Guid id, CancellationToken cancellationToken)
         {
-            var employee = _employeeRepository.GetById(id);
+            var employee = await _employeeService.DeleteAsync(id, cancellationToken);
+            return Ok(MapToDto(employee));
+        }
 
-            if (employee == null)
+        private static EmployeeDto MapToDto(Employee employee)
+        {
+            return new EmployeeDto
             {
-                return NotFound();
-            }
-
-            employee.Deactivate();
-            await _employeeRepository.UpdateAsync(employee, cancellationToken);
-
-            return NoContent();
+                Id = employee.Id,
+                FullName = employee.FullName,
+                Email = employee.Email,
+                Role = employee.Role,
+                IsActive = employee.IsActive,
+                CreatedAt = employee.CreatedAt,
+                UpdatedAt = employee.UpdatedAt,
+                TenantId = employee.TenantId
+            };
         }
     }
 }

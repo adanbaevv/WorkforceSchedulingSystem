@@ -1,16 +1,11 @@
-﻿using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Entities;
 
 namespace Application.Interfaces.Repositories
 {
     public interface IEmployeeRepository
     {
-        Employee GetById(Guid id);
-        IEnumerable<Employee> GetAll();
+        Task<Employee?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<Employee>> GetAllAsync(CancellationToken cancellationToken = default);
         Task AddAsync(Employee employee, CancellationToken cancellationToken = default);
         Task UpdateAsync(Employee employee, CancellationToken cancellationToken = default);
     }
