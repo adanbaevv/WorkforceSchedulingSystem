@@ -15,6 +15,7 @@ namespace Infrastructure.Data
         public DbSet<Shift> Shifts => Set<Shift>();
         public DbSet<ShiftRequest> ShiftRequests => Set<ShiftRequest>();
         public DbSet<Availability> Availabilities => Set<Availability>();
+        public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +24,20 @@ namespace Infrastructure.Data
             modelBuilder.Entity<ShiftRequest>()
                 .Property(request => request.Reason)
                 .HasMaxLength(500)
+                .IsRequired(false);
+
+            modelBuilder.Entity<TimeEntry>()
+                .HasOne(timeEntry => timeEntry.Employee)
+                .WithMany()
+                .HasForeignKey(timeEntry => timeEntry.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<TimeEntry>()
+                .HasOne(timeEntry => timeEntry.Shift)
+                .WithMany()
+                .HasForeignKey(timeEntry => timeEntry.ShiftId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
         }
 

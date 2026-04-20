@@ -11,6 +11,7 @@ namespace Application
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IShiftService, ShiftService>();
             services.AddScoped<IShiftRequestService, ShiftRequestService>();
+            services.AddScoped<ITimeEntryService, TimeEntryService>();
 
             return services;
         }
