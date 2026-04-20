@@ -10,7 +10,7 @@ namespace Application
         {
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IShiftService, ShiftService>();
-            services.AddScoped<ShiftRequestService>();
+            services.AddScoped<IShiftRequestService, ShiftRequestService>();
 
             return services;
         }

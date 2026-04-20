@@ -1,12 +1,8 @@
-﻿using Application.Interfaces.Repositories;
+using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
@@ -19,13 +15,25 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public ShiftRequest GetById(Guid id)
-            => _context.ShiftRequests.Find(id);
+        public async Task<ShiftRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+            => await _context.ShiftRequests.FindAsync(new object[] { id }, cancellationToken);
 
-        public IEnumerable<ShiftRequest> GetPending()
-            => _context.ShiftRequests
+        public async Task<IReadOnlyList<ShiftRequest>> GetAllAsync(CancellationToken cancellationToken = default)
+            => await _context.ShiftRequests
+                .OrderByDescending(r => r.RequestedAt)
+                .ToListAsync(cancellationToken);
+
+        public async Task<IReadOnlyList<ShiftRequest>> GetPendingAsync(CancellationToken cancellationToken = default)
+            => await _context.ShiftRequests
                 .Where(r => r.Status == ShiftRequestStatus.Pending)
-                .ToList();
+                .OrderByDescending(r => r.RequestedAt)
+                .ToListAsync(cancellationToken);
+
+        public async Task<IReadOnlyList<ShiftRequest>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
+            => await _context.ShiftRequests
+                .Where(r => r.RequestedByEmployeeId == employeeId)
+                .OrderByDescending(r => r.RequestedAt)
+                .ToListAsync(cancellationToken);
 
         public async Task AddAsync(ShiftRequest request, CancellationToken cancellationToken = default)
         {

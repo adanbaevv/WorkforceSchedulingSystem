@@ -20,7 +20,10 @@ namespace Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Optional: keep domain clean, config here
+            modelBuilder.Entity<ShiftRequest>()
+                .Property(request => request.Reason)
+                .HasMaxLength(500)
+                .IsRequired(false);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

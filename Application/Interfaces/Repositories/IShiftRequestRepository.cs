@@ -1,16 +1,13 @@
-﻿using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Entities;
 
 namespace Application.Interfaces.Repositories
 {
     public interface IShiftRequestRepository
     {
-        ShiftRequest GetById(Guid id);
-        IEnumerable<ShiftRequest> GetPending();
+        Task<ShiftRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ShiftRequest>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ShiftRequest>> GetPendingAsync(CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<ShiftRequest>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default);
         Task AddAsync(ShiftRequest request, CancellationToken cancellationToken = default);
         Task UpdateAsync(ShiftRequest request, CancellationToken cancellationToken = default);
     }
