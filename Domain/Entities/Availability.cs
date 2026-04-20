@@ -23,5 +23,17 @@ namespace Domain.Entities
             StartTime = startTime;
             EndTime = endTime;
         }
+
+        public void Update(DayOfWeek dayOfWeek, TimeSpan startTime, TimeSpan endTime)
+        {
+            if (startTime >= endTime)
+            {
+                throw new ArgumentException("Start time must be before end time");
+            }
+
+            DayOfWeek = dayOfWeek;
+            StartTime = startTime;
+            EndTime = endTime;
+        }
     }
 }
