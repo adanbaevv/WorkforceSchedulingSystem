@@ -88,11 +88,13 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Creates a new shift.
+        /// Creates a new shift. When <paramref name="dto"/> includes an employee identifier,
+        /// the shift is created and immediately assigned to that employee. When the employee identifier
+        /// is omitted or empty, the shift is created in the open state and becomes available for pickup.
         /// </summary>
         /// <param name="dto">The shift creation payload.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The created shift.</returns>
+        /// <returns>The created shift with its applied state.</returns>
         [HttpPost]
         public async Task<ActionResult<ShiftDto>> Create(
             [FromBody] CreateShiftDto dto,
@@ -102,6 +104,7 @@ namespace API.Controllers
                 dto.Date,
                 dto.StartTime,
                 dto.EndTime,
+                dto.EmployeeId,
                 cancellationToken);
 
             var shiftDto = MapToDto(shift);

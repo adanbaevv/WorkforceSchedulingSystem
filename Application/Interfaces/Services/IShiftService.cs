@@ -47,17 +47,19 @@ namespace Application.Interfaces.Services
         Task<Shift> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Creates a new shift.
+        /// Creates a new shift and either assigns it immediately or opens it for pickup.
         /// </summary>
         /// <param name="date">The shift date.</param>
         /// <param name="startTime">The shift start time.</param>
         /// <param name="endTime">The shift end time.</param>
+        /// <param name="employeeId">The optional employee identifier to assign immediately.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The created shift.</returns>
         Task<Shift> CreateAsync(
             DateOnly date,
             TimeSpan startTime,
             TimeSpan endTime,
+            Guid? employeeId,
             CancellationToken cancellationToken = default);
 
         /// <summary>

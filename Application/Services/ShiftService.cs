@@ -7,11 +7,13 @@ namespace Application.Services
 {
     public class ShiftService : IShiftService
     {
+        private readonly IEmployeeRepository _employeeRepository;
         private readonly IShiftRepository _shiftRepository;
 
-        public ShiftService(IShiftRepository shiftRepository)
+        public ShiftService(IShiftRepository shiftRepository, IEmployeeRepository employeeRepository)
         {
             _shiftRepository = shiftRepository;
+            _employeeRepository = employeeRepository;
         }
 
         /// <summary>
@@ -86,18 +88,21 @@ namespace Application.Services
         }
 
         /// <summary>
-        /// Creates a new shift.
+        /// Creates a new shift and either assigns it immediately or opens it for pickup.
         /// </summary>
         /// <param name="date">The shift date.</param>
         /// <param name="startTime">The shift start time.</param>
         /// <param name="endTime">The shift end time.</param>
+        /// <param name="employeeId">The optional employee identifier to assign immediately.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The created shift.</returns>
         /// <exception cref="ValidationException">Thrown when the input is invalid.</exception>
+        /// <exception cref="NotFoundException">Thrown when the provided employee does not exist.</exception>
         public async Task<Shift> CreateAsync(
             DateOnly date,
             TimeSpan startTime,
             TimeSpan endTime,
+            Guid? employeeId,
             CancellationToken cancellationToken = default)
         {
             if (startTime >= endTime)
@@ -106,6 +111,22 @@ namespace Application.Services
             }
 
             var shift = new Shift(date, startTime, endTime);
+
+            if (employeeId.HasValue)
+            {
+                var employee = await _employeeRepository.GetByIdAsync(employeeId.Value, cancellationToken);
+                if (employee == null)
+                {
+                    throw new NotFoundException($"Employee with id '{employeeId.Value}' was not found.");
+                }
+
+                shift.AssignEmployee(employeeId.Value);
+            }
+            else
+            {
+                shift.OpenForPickup();
+            }
+
             await _shiftRepository.AddAsync(shift, cancellationToken);
 
             return shift;
