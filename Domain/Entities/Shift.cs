@@ -37,5 +37,10 @@ namespace Domain.Entities
             Status = ShiftStatus.OpenForPickup;
             AssignedEmployeeId = null;
         }
+
+        public void Deactivate()
+        {
+            IsActive = false;
+        }
     }
 }

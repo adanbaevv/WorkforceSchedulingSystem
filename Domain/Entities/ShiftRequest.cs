@@ -33,5 +33,10 @@ namespace Domain.Entities
         {
             Status = ShiftRequestStatus.Rejected;
         }
+
+        public void Deactivate()
+        {
+            IsActive = false;
+        }
     }
 }

@@ -58,5 +58,12 @@ namespace Application.Interfaces.Services
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The updated shift request.</returns>
         Task<ShiftRequest> RejectRequestAsync(Guid requestId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Soft-deletes a shift request by setting its active flag to false. The record is preserved for audit purposes.
+        /// </summary>
+        /// <param name="requestId">The shift request identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task DeleteAsync(Guid requestId, CancellationToken cancellationToken = default);
     }
 }

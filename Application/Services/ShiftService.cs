@@ -167,5 +167,18 @@ namespace Application.Services
 
             return shift;
         }
+
+        /// <summary>
+        /// Soft-deletes a shift by setting its active flag to false. The record is preserved for audit purposes.
+        /// </summary>
+        /// <param name="shiftId">The shift identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <exception cref="NotFoundException">Thrown when the shift does not exist.</exception>
+        public async Task DeleteAsync(Guid shiftId, CancellationToken cancellationToken = default)
+        {
+            var shift = await GetByIdAsync(shiftId, cancellationToken);
+            shift.Deactivate();
+            await _shiftRepository.UpdateAsync(shift, cancellationToken);
+        }
     }
 }

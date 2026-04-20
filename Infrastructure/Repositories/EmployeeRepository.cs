@@ -15,10 +15,13 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<Employee?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.Employees.FindAsync(new object[] { id }, cancellationToken);
+            => await _context.Employees
+                .FirstOrDefaultAsync(employee => employee.Id == id && employee.IsActive, cancellationToken);
 
         public async Task<IReadOnlyList<Employee>> GetAllAsync(CancellationToken cancellationToken = default)
-            => await _context.Employees.ToListAsync(cancellationToken);
+            => await _context.Employees
+                .Where(employee => employee.IsActive)
+                .ToListAsync(cancellationToken);
 
         public async Task AddAsync(Employee employee, CancellationToken cancellationToken = default)
         {

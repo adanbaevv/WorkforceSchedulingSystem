@@ -35,5 +35,10 @@ namespace Domain.Entities
             StartTime = startTime;
             EndTime = endTime;
         }
+
+        public void Deactivate()
+        {
+            IsActive = false;
+        }
     }
 }

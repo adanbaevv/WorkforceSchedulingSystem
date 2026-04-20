@@ -13,6 +13,7 @@ namespace Application.Interfaces.Repositories
             CancellationToken cancellationToken = default);
         Task<IReadOnlyList<Shift>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default);
         Task AddAsync(Shift shift, CancellationToken cancellationToken = default);
+        Task AddRangeAsync(IEnumerable<Shift> shifts, CancellationToken cancellationToken = default);
         Task UpdateAsync(Shift shift, CancellationToken cancellationToken = default);
     }
 }

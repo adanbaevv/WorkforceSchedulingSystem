@@ -9,6 +9,5 @@ namespace Application.Interfaces.Repositories
         Task<IReadOnlyList<Availability>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default);
         Task AddAsync(Availability availability, CancellationToken cancellationToken = default);
         Task UpdateAsync(Availability availability, CancellationToken cancellationToken = default);
-        Task DeleteAsync(Availability availability, CancellationToken cancellationToken = default);
     }
 }

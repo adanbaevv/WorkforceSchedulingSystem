@@ -27,5 +27,10 @@ namespace Domain.Entities
             ClockOutAt = clockOutAt;
             Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
         }
+
+        public void Deactivate()
+        {
+            IsActive = false;
+        }
     }
 }

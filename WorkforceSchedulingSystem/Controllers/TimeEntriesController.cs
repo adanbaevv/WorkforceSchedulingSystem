@@ -87,6 +87,22 @@ namespace API.Controllers
             return Ok(entries.Select(MapToDto).ToList());
         }
 
+        /// <summary>
+        /// Soft delete (sets IsActive = false); historical records are preserved.
+        /// In a production system this action should be restricted to administrators, because time entries
+        /// feed payroll — the underlying row is retained for audit, but the entry will be hidden from every
+        /// read API after deletion and no longer retrievable by id.
+        /// </summary>
+        /// <param name="id">The time entry identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>No content when the deletion succeeds.</returns>
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            await _timeEntryService.DeleteAsync(id, cancellationToken);
+            return NoContent();
+        }
+
         private static TimeEntryDto MapToDto(TimeEntry timeEntry)
         {
             return new TimeEntryDto

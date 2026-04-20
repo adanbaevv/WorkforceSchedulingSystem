@@ -132,5 +132,29 @@ namespace Application.Services
 
             return await _timeEntryRepository.GetHistoryByEmployeeAsync(employeeId, cancellationToken);
         }
+
+        /// <summary>
+        /// Soft-deletes a time entry by setting its active flag to false. The record is preserved for payroll audit purposes.
+        /// </summary>
+        /// <param name="timeEntryId">The time entry identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <exception cref="ValidationException">Thrown when the identifier is empty.</exception>
+        /// <exception cref="NotFoundException">Thrown when the time entry does not exist.</exception>
+        public async Task DeleteAsync(Guid timeEntryId, CancellationToken cancellationToken = default)
+        {
+            if (timeEntryId == Guid.Empty)
+            {
+                throw new ValidationException("Time entry id is required.");
+            }
+
+            var timeEntry = await _timeEntryRepository.GetByIdAsync(timeEntryId, cancellationToken);
+            if (timeEntry == null)
+            {
+                throw new NotFoundException($"Time entry with id '{timeEntryId}' was not found.");
+            }
+
+            timeEntry.Deactivate();
+            await _timeEntryRepository.UpdateAsync(timeEntry, cancellationToken);
+        }
     }
 }

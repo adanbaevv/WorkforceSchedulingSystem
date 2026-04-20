@@ -17,18 +17,20 @@ namespace Infrastructure.Repositories
 
         public async Task<IReadOnlyList<Shift>> GetAllAsync(CancellationToken cancellationToken = default)
             => await _context.Shifts
-                .OrderBy(s => s.Date)
-                .ThenBy(s => s.StartTime)
+                .Where(shift => shift.IsActive)
+                .OrderBy(shift => shift.Date)
+                .ThenBy(shift => shift.StartTime)
                 .ToListAsync(cancellationToken);
 
         public async Task<Shift?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.Shifts.FindAsync(new object[] { id }, cancellationToken);
+            => await _context.Shifts
+                .FirstOrDefaultAsync(shift => shift.Id == id && shift.IsActive, cancellationToken);
 
         public async Task<IReadOnlyList<Shift>> GetOpenShiftsAsync(CancellationToken cancellationToken = default)
             => await _context.Shifts
-                .Where(s => s.Status == ShiftStatus.OpenForPickup)
-                .OrderBy(s => s.Date)
-                .ThenBy(s => s.StartTime)
+                .Where(shift => shift.IsActive && shift.Status == ShiftStatus.OpenForPickup)
+                .OrderBy(shift => shift.Date)
+                .ThenBy(shift => shift.StartTime)
                 .ToListAsync(cancellationToken);
 
         public async Task<IReadOnlyList<Shift>> GetByDateRangeAsync(
@@ -36,21 +38,27 @@ namespace Infrastructure.Repositories
             DateOnly endDate,
             CancellationToken cancellationToken = default)
             => await _context.Shifts
-                .Where(s => s.Date >= startDate && s.Date <= endDate)
-                .OrderBy(s => s.Date)
-                .ThenBy(s => s.StartTime)
+                .Where(shift => shift.IsActive && shift.Date >= startDate && shift.Date <= endDate)
+                .OrderBy(shift => shift.Date)
+                .ThenBy(shift => shift.StartTime)
                 .ToListAsync(cancellationToken);
 
         public async Task<IReadOnlyList<Shift>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
             => await _context.Shifts
-                .Where(s => s.AssignedEmployeeId == employeeId)
-                .OrderBy(s => s.Date)
-                .ThenBy(s => s.StartTime)
+                .Where(shift => shift.IsActive && shift.AssignedEmployeeId == employeeId)
+                .OrderBy(shift => shift.Date)
+                .ThenBy(shift => shift.StartTime)
                 .ToListAsync(cancellationToken);
 
         public async Task AddAsync(Shift shift, CancellationToken cancellationToken = default)
         {
             _context.Shifts.Add(shift);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task AddRangeAsync(IEnumerable<Shift> shifts, CancellationToken cancellationToken = default)
+        {
+            _context.Shifts.AddRange(shifts);
             await _context.SaveChangesAsync(cancellationToken);
         }
 

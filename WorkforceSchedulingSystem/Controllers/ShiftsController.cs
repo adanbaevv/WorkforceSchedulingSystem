@@ -141,6 +141,21 @@ namespace API.Controllers
             return Ok(MapToDto(shift));
         }
 
+        /// <summary>
+        /// Soft delete (sets IsActive = false); historical records are preserved.
+        /// After deletion, the shift is excluded from every list and is no longer retrievable by id.
+        /// The auto-scheduler will not count a soft-deleted shift toward an employee's weekly hours.
+        /// </summary>
+        /// <param name="id">The shift identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>No content when the deletion succeeds.</returns>
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            await _shiftService.DeleteAsync(id, cancellationToken);
+            return NoContent();
+        }
+
         private static ShiftDto MapToDto(Shift shift)
         {
             return new ShiftDto

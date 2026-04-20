@@ -143,7 +143,8 @@ namespace Application.Services
         }
 
         /// <summary>
-        /// Removes an availability record.
+        /// Soft-deletes an availability record by setting its active flag to false.
+        /// Historical records are preserved; subsequent reads will treat the record as absent.
         /// </summary>
         /// <param name="id">The availability identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
@@ -151,7 +152,8 @@ namespace Application.Services
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var availability = await GetByIdAsync(id, cancellationToken);
-            await _availabilityRepository.DeleteAsync(availability, cancellationToken);
+            availability.Deactivate();
+            await _availabilityRepository.UpdateAsync(availability, cancellationToken);
         }
 
         private static void ValidateInput(Guid employeeId, TimeSpan startTime, TimeSpan endTime)

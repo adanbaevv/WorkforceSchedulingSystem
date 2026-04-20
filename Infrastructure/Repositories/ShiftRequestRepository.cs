@@ -16,23 +16,45 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<ShiftRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.ShiftRequests.FindAsync(new object[] { id }, cancellationToken);
+            => await (from request in _context.ShiftRequests
+                      join employee in _context.Employees
+                          on request.RequestedByEmployeeId equals employee.Id
+                      where request.Id == id
+                            && request.IsActive
+                            && employee.IsActive
+                      select request)
+                .FirstOrDefaultAsync(cancellationToken);
 
         public async Task<IReadOnlyList<ShiftRequest>> GetAllAsync(CancellationToken cancellationToken = default)
-            => await _context.ShiftRequests
-                .OrderByDescending(r => r.RequestedAt)
+            => await (from request in _context.ShiftRequests
+                      join employee in _context.Employees
+                          on request.RequestedByEmployeeId equals employee.Id
+                      where request.IsActive
+                            && employee.IsActive
+                      orderby request.RequestedAt descending
+                      select request)
                 .ToListAsync(cancellationToken);
 
         public async Task<IReadOnlyList<ShiftRequest>> GetPendingAsync(CancellationToken cancellationToken = default)
-            => await _context.ShiftRequests
-                .Where(r => r.Status == ShiftRequestStatus.Pending)
-                .OrderByDescending(r => r.RequestedAt)
+            => await (from request in _context.ShiftRequests
+                      join employee in _context.Employees
+                          on request.RequestedByEmployeeId equals employee.Id
+                      where request.IsActive
+                            && employee.IsActive
+                            && request.Status == ShiftRequestStatus.Pending
+                      orderby request.RequestedAt descending
+                      select request)
                 .ToListAsync(cancellationToken);
 
         public async Task<IReadOnlyList<ShiftRequest>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
-            => await _context.ShiftRequests
-                .Where(r => r.RequestedByEmployeeId == employeeId)
-                .OrderByDescending(r => r.RequestedAt)
+            => await (from request in _context.ShiftRequests
+                      join employee in _context.Employees
+                          on request.RequestedByEmployeeId equals employee.Id
+                      where request.IsActive
+                            && employee.IsActive
+                            && request.RequestedByEmployeeId == employeeId
+                      orderby request.RequestedAt descending
+                      select request)
                 .ToListAsync(cancellationToken);
 
         public async Task AddAsync(ShiftRequest request, CancellationToken cancellationToken = default)

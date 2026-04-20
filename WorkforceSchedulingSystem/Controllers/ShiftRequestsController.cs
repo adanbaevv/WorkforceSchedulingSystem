@@ -105,6 +105,23 @@ namespace API.Controllers
             return Ok(MapToDto(request));
         }
 
+        /// <summary>
+        /// Soft delete (sets IsActive = false); historical records are preserved.
+        /// This is distinct from rejecting a request: rejection changes the request's status to Rejected while
+        /// keeping it visible in manager views, while deletion removes the record entirely from manager views
+        /// (intended for cleaning up test or duplicate entries). After deletion, the request is excluded from
+        /// every list and is no longer retrievable by id.
+        /// </summary>
+        /// <param name="id">The shift request identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>No content when the deletion succeeds.</returns>
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            await _shiftRequestService.DeleteAsync(id, cancellationToken);
+            return NoContent();
+        }
+
         private static ShiftRequestDto MapToDto(ShiftRequest request)
         {
             return new ShiftRequestDto

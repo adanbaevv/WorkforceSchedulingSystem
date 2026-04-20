@@ -104,7 +104,9 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Deletes an availability record.
+        /// Soft delete (sets IsActive = false); historical records are preserved.
+        /// After deletion, the availability is excluded from every list and is no longer retrievable by id,
+        /// and the auto-scheduler will stop considering the window.
         /// </summary>
         /// <param name="id">The availability identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>

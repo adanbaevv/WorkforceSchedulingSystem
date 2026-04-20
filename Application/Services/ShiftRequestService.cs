@@ -142,6 +142,20 @@ namespace Application.Services
             return request;
         }
 
+        /// <summary>
+        /// Soft-deletes a shift request by setting its active flag to false. The record is preserved for audit purposes.
+        /// </summary>
+        /// <param name="requestId">The shift request identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <exception cref="ValidationException">Thrown when the identifier is empty.</exception>
+        /// <exception cref="NotFoundException">Thrown when the shift request does not exist.</exception>
+        public async Task DeleteAsync(Guid requestId, CancellationToken cancellationToken = default)
+        {
+            var request = await GetExistingRequestAsync(requestId, cancellationToken);
+            request.Deactivate();
+            await _requestRepository.UpdateAsync(request, cancellationToken);
+        }
+
         private async Task<ShiftRequest> GetExistingRequestAsync(Guid requestId, CancellationToken cancellationToken)
         {
             if (requestId == Guid.Empty)

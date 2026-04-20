@@ -15,17 +15,26 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<TimeEntry?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.TimeEntries.FindAsync(new object[] { id }, cancellationToken);
+            => await _context.TimeEntries
+                .Where(timeEntry => timeEntry.Id == id
+                                    && timeEntry.IsActive
+                                    && timeEntry.Employee.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
 
         public async Task<TimeEntry?> GetActiveByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
             => await _context.TimeEntries
-                .Where(timeEntry => timeEntry.EmployeeId == employeeId && timeEntry.ClockOutAt == null)
+                .Where(timeEntry => timeEntry.EmployeeId == employeeId
+                                    && timeEntry.ClockOutAt == null
+                                    && timeEntry.IsActive
+                                    && timeEntry.Employee.IsActive)
                 .OrderByDescending(timeEntry => timeEntry.ClockInAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
         public async Task<IReadOnlyList<TimeEntry>> GetHistoryByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
             => await _context.TimeEntries
-                .Where(timeEntry => timeEntry.EmployeeId == employeeId)
+                .Where(timeEntry => timeEntry.EmployeeId == employeeId
+                                    && timeEntry.IsActive
+                                    && timeEntry.Employee.IsActive)
                 .OrderByDescending(timeEntry => timeEntry.ClockInAt)
                 .ToListAsync(cancellationToken);
 

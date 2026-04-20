@@ -116,6 +116,22 @@ namespace API.Controllers
             return Ok(MapToDto(employee));
         }
 
+        /// <summary>
+        /// Soft delete (sets IsActive = false); historical records are preserved.
+        /// After deletion, the employee is excluded from every list and is no longer retrievable by id.
+        /// Related records (shifts, time entries, shift requests) that depend on this employee are also
+        /// hidden from read APIs while the underlying rows remain intact for audit purposes.
+        /// </summary>
+        /// <param name="id">The employee identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>No content when the deletion succeeds.</returns>
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            await _employeeService.DeleteAsync(id, cancellationToken);
+            return NoContent();
+        }
+
         private static EmployeeDto MapToDto(Employee employee)
         {
             return new EmployeeDto

@@ -80,5 +80,12 @@ namespace Application.Interfaces.Services
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The updated shift.</returns>
         Task<Shift> OpenShiftAsync(Guid shiftId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Soft-deletes a shift by setting its active flag to false. The record is preserved for audit purposes.
+        /// </summary>
+        /// <param name="shiftId">The shift identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task DeleteAsync(Guid shiftId, CancellationToken cancellationToken = default);
     }
 }

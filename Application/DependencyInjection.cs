@@ -13,6 +13,7 @@ namespace Application
             services.AddScoped<IShiftRequestService, ShiftRequestService>();
             services.AddScoped<ITimeEntryService, TimeEntryService>();
             services.AddScoped<IAvailabilityService, AvailabilityService>();
+            services.AddScoped<IScheduleService, ScheduleService>();
 
             return services;
         }

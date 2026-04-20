@@ -15,10 +15,12 @@ namespace Infrastructure.Repositories
         }
 
         public async Task<Availability?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-            => await _context.Availabilities.FindAsync(new object[] { id }, cancellationToken);
+            => await _context.Availabilities
+                .FirstOrDefaultAsync(availability => availability.Id == id && availability.IsActive, cancellationToken);
 
         public async Task<IReadOnlyList<Availability>> GetAllAsync(CancellationToken cancellationToken = default)
             => await _context.Availabilities
+                .Where(availability => availability.IsActive)
                 .OrderBy(availability => availability.EmployeeId)
                 .ThenBy(availability => availability.DayOfWeek)
                 .ThenBy(availability => availability.StartTime)
@@ -26,7 +28,7 @@ namespace Infrastructure.Repositories
 
         public async Task<IReadOnlyList<Availability>> GetByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default)
             => await _context.Availabilities
-                .Where(availability => availability.EmployeeId == employeeId)
+                .Where(availability => availability.IsActive && availability.EmployeeId == employeeId)
                 .OrderBy(availability => availability.DayOfWeek)
                 .ThenBy(availability => availability.StartTime)
                 .ToListAsync(cancellationToken);
@@ -40,12 +42,6 @@ namespace Infrastructure.Repositories
         public async Task UpdateAsync(Availability availability, CancellationToken cancellationToken = default)
         {
             _context.Availabilities.Update(availability);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
-
-        public async Task DeleteAsync(Availability availability, CancellationToken cancellationToken = default)
-        {
-            _context.Availabilities.Remove(availability);
             await _context.SaveChangesAsync(cancellationToken);
         }
     }

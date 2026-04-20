@@ -37,5 +37,12 @@ namespace Application.Interfaces.Services
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A collection of time entries.</returns>
         Task<IReadOnlyList<TimeEntry>> GetHistoryByEmployeeAsync(Guid employeeId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Soft-deletes a time entry by setting its active flag to false. The record is preserved for payroll audit purposes.
+        /// </summary>
+        /// <param name="timeEntryId">The time entry identifier.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        Task DeleteAsync(Guid timeEntryId, CancellationToken cancellationToken = default);
     }
 }
