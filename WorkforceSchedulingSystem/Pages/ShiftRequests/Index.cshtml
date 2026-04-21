@@ -1,0 +1,90 @@
+@page
+@using Domain.Enums
+@model API.Pages.ShiftRequests.IndexModel
+@{
+    ViewData["Title"] = "Requests";
+}
+
+<h1 class="mb-1">Pending Shift Requests</h1>
+<p class="text-muted mb-4">
+    <span class="badge rounded-pill badge-active me-1">Approved: @Model.ApprovedCount</span>
+    <span class="badge rounded-pill" style="background-color:#A8432F;color:white;">Rejected: @Model.RejectedCount</span>
+</p>
+
+<div class="card shadow-sm border-0">
+    @if (Model.PendingRequests.Any())
+    {
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="width: 110px;">Type</th>
+                    <th>Request</th>
+                    <th style="width: 180px;">Requested At</th>
+                    <th class="text-end" style="width: 180px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var request in Model.PendingRequests)
+                {
+                    Domain.Entities.Shift? shift = Model.ShiftLookup.TryGetValue(request.ShiftId, out var s) ? s : null;
+                    var empName = Model.EmployeeNameOf(request.RequestedByEmployeeId);
+                    var shiftWhen = shift != null
+                        ? $"{shift.Date:dddd, MMM d} · {shift.StartTime:hh\\:mm}–{shift.EndTime:hh\\:mm}"
+                        : "(shift unavailable)";
+
+                    <tr>
+                        <td>
+                            @if (request.RequestType == ShiftRequestType.Pickup)
+                            {
+                                <span class="badge rounded-pill badge-pickup">Pickup</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill badge-drop">Drop</span>
+                            }
+                        </td>
+                        <td>
+                            @if (request.RequestType == ShiftRequestType.Pickup)
+                            {
+                                <div>
+                                    <span class="fw-semibold">@empName</span>
+                                    wants to <strong>PICK UP</strong> this open shift on @shiftWhen.
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    <span class="fw-semibold">@empName</span>
+                                    wants to <strong>DROP</strong> their assigned shift on @shiftWhen.
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(request.Reason))
+                            {
+                                <div class="text-muted fst-italic small mt-1">&ldquo;@request.Reason&rdquo;</div>
+                            }
+                        </td>
+                        <td class="text-muted small">@request.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="text-end">
+                            <form method="post" asp-page-handler="Approve" class="d-inline">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                            </form>
+                            <form method="post" asp-page-handler="Reject" class="d-inline">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <div>No pending requests. Inbox is clear.</div>
+        </div>
+    }
+</div>

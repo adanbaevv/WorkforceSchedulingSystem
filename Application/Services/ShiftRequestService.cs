@@ -11,12 +11,15 @@ namespace Application.Services
     {
         private readonly ICurrentUserService _currentUserService;
         private readonly IShiftRequestRepository _requestRepository;
+        private readonly IShiftRepository _shiftRepository;
 
         public ShiftRequestService(
             IShiftRequestRepository requestRepository,
+            IShiftRepository shiftRepository,
             ICurrentUserService currentUserService)
         {
             _requestRepository = requestRepository;
+            _shiftRepository = shiftRepository;
             _currentUserService = currentUserService;
         }
 
@@ -99,13 +102,40 @@ namespace Application.Services
         }
 
         /// <summary>
-        /// Approves a shift request.
+        /// Approves a pending shift request and mutates the underlying shift to reflect the approval.
+        /// Behavior depends on <see cref="ShiftRequest.RequestType"/>:
+        /// <list type="bullet">
+        /// <item>
+        /// <description>
+        /// <b>Pickup</b> — the referenced shift must currently be open (unassigned). On approval the shift is
+        /// assigned to the requesting employee via <see cref="Shift.AssignEmployee"/>. If the shift is already
+        /// assigned to someone else, a <see cref="ConflictException"/> is thrown — the request cannot be
+        /// granted because the slot is taken.
+        /// </description>
+        /// </item>
+        /// <item>
+        /// <description>
+        /// <b>Drop</b> — the referenced shift must currently be assigned to the requesting employee. On
+        /// approval the shift is unassigned and opened for pickup via <see cref="Shift.OpenForPickup"/>.
+        /// If the shift is already unassigned or assigned to a different employee, a
+        /// <see cref="ConflictException"/> is thrown.
+        /// </description>
+        /// </item>
+        /// </list>
+        /// Both the shift mutation and the request status change are persisted. This is two separate
+        /// <c>SaveChangesAsync</c> calls today — acceptable for the diploma demo. A future Unit-of-Work
+        /// wrapper should make the pair transactional so a crash between them cannot leave the DB with the
+        /// shift reassigned but the request still marked pending.
         /// </summary>
         /// <param name="requestId">The shift request identifier.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The updated shift request.</returns>
-        /// <exception cref="NotFoundException">Thrown when the shift request does not exist.</exception>
-        /// <exception cref="ConflictException">Thrown when the shift request is no longer pending.</exception>
+        /// <returns>The updated (approved) shift request.</returns>
+        /// <exception cref="ValidationException">Thrown when the identifier is empty.</exception>
+        /// <exception cref="NotFoundException">Thrown when the request or its shift does not exist.</exception>
+        /// <exception cref="ConflictException">
+        /// Thrown when the request is not pending, or when the shift is in a state that makes the approval
+        /// impossible (Pickup on an already-assigned shift, or Drop on a shift no longer owned by the requester).
+        /// </exception>
         public async Task<ShiftRequest> ApproveRequestAsync(Guid requestId, CancellationToken cancellationToken = default)
         {
             _ = _currentUserService.CurrentUserId;
@@ -113,6 +143,36 @@ namespace Application.Services
 
             var request = await GetExistingRequestAsync(requestId, cancellationToken);
             EnsurePending(request);
+
+            var shift = await _shiftRepository.GetByIdAsync(request.ShiftId, cancellationToken);
+            if (shift == null)
+            {
+                throw new NotFoundException("Shift associated with this request no longer exists.");
+            }
+
+            switch (request.RequestType)
+            {
+                case ShiftRequestType.Pickup:
+                    if (shift.AssignedEmployeeId.HasValue)
+                    {
+                        throw new ConflictException("Shift is no longer open — it has already been assigned.");
+                    }
+                    shift.AssignEmployee(request.RequestedByEmployeeId);
+                    break;
+
+                case ShiftRequestType.Drop:
+                    if (shift.AssignedEmployeeId != request.RequestedByEmployeeId)
+                    {
+                        throw new ConflictException("Shift is no longer assigned to this employee.");
+                    }
+                    shift.OpenForPickup();
+                    break;
+
+                default:
+                    throw new ValidationException($"Unsupported request type '{request.RequestType}'.");
+            }
+
+            await _shiftRepository.UpdateAsync(shift, cancellationToken);
 
             request.Approve();
             await _requestRepository.UpdateAsync(request, cancellationToken);

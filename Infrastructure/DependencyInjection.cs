@@ -24,7 +24,7 @@ namespace Infrastructure
             services.AddScoped<IShiftRequestRepository, ShiftRequestRepository>();
             services.AddScoped<ITimeEntryRepository, TimeEntryRepository>();
             services.AddScoped<IAvailabilityRepository, AvailabilityRepository>();
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<ICurrentUserService, SessionCurrentUserService>();
 
             return services;
         }

@@ -1,0 +1,152 @@
+@page
+@model API.Pages.IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="mb-4">
+    <h1 class="mb-1">@Model.Greeting, @Model.GreetedName 👋</h1>
+    <p class="text-muted mb-0">@Model.TodayPretty</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="kpi-icon"><i class="bi bi-people"></i></div>
+                <div>
+                    <div class="kpi-label">Employees</div>
+                    <div class="kpi-value">@Model.EmployeeCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="kpi-icon"><i class="bi bi-calendar-week"></i></div>
+                <div>
+                    <div class="kpi-label">Shifts This Week</div>
+                    <div class="kpi-value">@Model.ShiftsThisWeekCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="kpi-icon"><i class="bi bi-inbox"></i></div>
+                <div>
+                    <div class="kpi-label">Pending Requests</div>
+                    <div class="kpi-value">@Model.PendingRequestsCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card kpi-card h-100">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="kpi-icon"><i class="bi bi-clock-history"></i></div>
+                <div>
+                    <div class="kpi-label">Currently Clocked In</div>
+                    <div class="kpi-value">@Model.CurrentlyClockedInCount</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3 fw-semibold">Schedule Overview</h4>
+
+<div class="row g-3 mb-4">
+    @{
+        var weeks = new List<API.Pages.IndexModel.WeekSummary> { Model.ThisWeek, Model.NextWeek };
+        if (Model.Week3 != null) { weeks.Add(Model.Week3); }
+        var colSize = Model.Week3 != null ? "col-lg-4" : "col-lg-6";
+    }
+    @foreach (var week in weeks)
+    {
+        <div class="@colSize">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">@week.Label</div>
+                        <div class="text-muted small">@week.WeekStart.ToString("MMM d") – @week.WeekEnd.ToString("MMM d, yyyy")</div>
+                    </div>
+                    <span class="badge rounded-pill badge-worker">@week.TotalShiftCount shift(s)</span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    @foreach (var day in week.Days)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-semibold">@day.Date.DayOfWeek</span>
+                                <span class="text-muted ms-2 small">@day.Date.ToString("MMM d")</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted small">@day.AssignedCount assigned</span>
+                                @if (day.OpenCount > 0)
+                                {
+                                    <span class="badge rounded-pill badge-open">@day.OpenCount open</span>
+                                }
+                                <a class="btn btn-sm btn-outline-secondary"
+                                   asp-page="/Shifts/Index"
+                                   asp-route-WeekStartDate="@week.WeekStart.ToString("yyyy-MM-dd")">View</a>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="mb-4">
+    @if (!Model.ShowWeek3)
+    {
+        <a class="btn btn-outline-primary" asp-page="/Index" asp-route-showWeek3="true">
+            <i class="bi bi-plus-lg me-1"></i> Plan Week 3
+        </a>
+    }
+    else
+    {
+        <a class="btn btn-outline-secondary" asp-page="/Index">
+            <i class="bi bi-dash-lg me-1"></i> Hide Week 3
+        </a>
+    }
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header fw-semibold">Recent Activity — last 5 shifts created</div>
+    <div class="card-body p-0">
+        @if (Model.RecentShifts.Any())
+        {
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var recent in Model.RecentShifts)
+                    {
+                        <tr>
+                            <td>@recent.Date.ToString("ddd, MMM d")</td>
+                            <td>@recent.StartTime.ToString(@"hh\:mm") – @recent.EndTime.ToString(@"hh\:mm")</td>
+                            <td>@recent.EmployeeName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-calendar3"></i>
+                <div>No recent shifts yet.</div>
+            </div>
+        }
+    </div>
+</div>

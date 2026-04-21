@@ -1,0 +1,118 @@
+@page
+@model API.Pages.Worker.ClockModel
+@{
+    ViewData["Title"] = "Clock In / Out";
+    var isClockedIn = Model.ActiveEntry != null;
+}
+
+<div class="mb-4">
+    <h1 class="mb-1">Clock In / Out</h1>
+    <p class="text-muted mb-0">@Model.ViewerName · @DateTime.Now.ToString("dddd, MMM d · HH:mm")</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body text-center py-5">
+                @if (Model.TargetShift != null && !isClockedIn)
+                {
+                    <div class="mb-3 text-muted">
+                        Clocking in for shift
+                        <div class="fw-semibold text-body">
+                            @Model.TargetShift.Date.ToString("dddd, MMM d") ·
+                            @Model.TargetShift.StartTime.ToString(@"hh\:mm") – @Model.TargetShift.EndTime.ToString(@"hh\:mm")
+                        </div>
+                    </div>
+                }
+
+                @if (!isClockedIn)
+                {
+                    <div class="mb-3">
+                        <i class="bi bi-clock" style="font-size: 3rem; color: var(--brand-muted);"></i>
+                    </div>
+                    <div class="text-muted mb-4">You are not currently clocked in.</div>
+
+                    <form method="post" asp-page-handler="ClockIn">
+                        @if (Model.ShiftId.HasValue)
+                        {
+                            <input type="hidden" name="ShiftId" value="@Model.ShiftId" />
+                        }
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="bi bi-play-circle me-1"></i> Clock In Now
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <div class="mb-3">
+                        <div class="kpi-icon mx-auto" style="width:56px; height:56px; font-size:1.5rem;">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                    <div class="fw-semibold mb-1">You're clocked in</div>
+                    <div class="text-muted mb-4">
+                        Since @Model.ActiveEntry!.ClockInAt.ToLocalTime().ToString("HH:mm")
+                        · @((DateTime.UtcNow - Model.ActiveEntry.ClockInAt).TotalMinutes.ToString("0")) minutes ago
+                    </div>
+
+                    <form method="post" asp-page-handler="ClockOut">
+                        <input type="hidden" name="timeEntryId" value="@Model.ActiveEntry.Id" />
+                        <button type="submit" class="btn btn-danger btn-lg px-5">
+                            <i class="bi bi-stop-circle me-1"></i> Clock Out Now
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-semibold">Today's Clock Events</div>
+            @if (Model.TodayEntries.Any())
+            {
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Clock In</th>
+                            <th>Clock Out</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var entry in Model.TodayEntries)
+                        {
+                            <tr>
+                                <td>@entry.ClockInAt.ToLocalTime().ToString("HH:mm")</td>
+                                <td>
+                                    @if (entry.ClockOutAt.HasValue)
+                                    {
+                                        @entry.ClockOutAt.Value.ToLocalTime().ToString("HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <span class="badge rounded-pill badge-active">In progress</span>
+                                    }
+                                </td>
+                                <td class="text-muted small">
+                                    @if (entry.ClockOutAt.HasValue)
+                                    {
+                                        @((entry.ClockOutAt.Value - entry.ClockInAt).TotalMinutes.ToString("0")) <text>min</text>
+                                    }
+                                    else
+                                    {
+                                        @((DateTime.UtcNow - entry.ClockInAt).TotalMinutes.ToString("0")) <text>min (ongoing)</text>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty-state py-3">
+                    <div>No clock events today yet.</div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

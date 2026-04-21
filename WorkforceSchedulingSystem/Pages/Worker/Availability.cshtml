@@ -1,0 +1,88 @@
+@page
+@model API.Pages.Worker.AvailabilityModel
+@{
+    ViewData["Title"] = "My Availability";
+}
+
+<div class="mb-4">
+    <h1 class="mb-1">My Availability</h1>
+    <p class="text-muted mb-0">Hours you're available to work each week</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-semibold">Current Windows</div>
+            @if (Model.Availabilities.Any())
+            {
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var availability in Model.Availabilities.OrderBy(a => a.DayOfWeek).ThenBy(a => a.StartTime))
+                        {
+                            <tr>
+                                <td>@availability.DayOfWeek</td>
+                                <td>@availability.StartTime.ToString(@"hh\:mm")</td>
+                                <td>@availability.EndTime.ToString(@"hh\:mm")</td>
+                                <td class="text-end">
+                                    <form method="post" asp-page-handler="Delete" class="d-inline"
+                                          onsubmit="return confirm('Remove this availability window?');">
+                                        <input type="hidden" name="availabilityId" value="@availability.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="bi bi-clock"></i>
+                    <div>No windows set yet. Add your first one →</div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-semibold">Add Availability</div>
+            <div class="card-body">
+                <form method="post" asp-page-handler="Add">
+                    <div class="mb-3">
+                        <label class="form-label">Day of Week</label>
+                        <select asp-for="NewDayOfWeek" class="form-select">
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                            <option value="0">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Start Time</label>
+                        <input type="time" name="NewStartTime" class="form-control"
+                               value="@Model.NewStartTime.ToString(@"hh\:mm")" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">End Time</label>
+                        <input type="time" name="NewEndTime" class="form-control"
+                               value="@Model.NewEndTime.ToString(@"hh\:mm")" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Add Availability</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

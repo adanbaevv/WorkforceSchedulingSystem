@@ -1,0 +1,35 @@
+@page
+@model API.Pages.Employees.CreateModel
+@{
+    ViewData["Title"] = "Add Employee";
+}
+
+<a asp-page="/Employees/Index" class="btn btn-sm btn-outline-secondary mb-3">&larr; Back to Employees</a>
+
+<h1 class="mb-4">Add Employee</h1>
+
+<div class="card shadow-sm border-0" style="max-width: 560px;">
+    <div class="card-body">
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input asp-for="Input.FullName" class="form-control" required placeholder="e.g. Nurlan Asanov" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input asp-for="Input.Email" type="email" class="form-control" required placeholder="nurlan@qadam.kg" />
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Role</label>
+                <select asp-for="Input.Role" class="form-select">
+                    <option value="0">Worker</option>
+                    <option value="1">Manager</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Create Employee</button>
+                <a asp-page="/Employees/Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

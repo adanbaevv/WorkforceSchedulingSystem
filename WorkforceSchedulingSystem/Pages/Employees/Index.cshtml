@@ -1,0 +1,74 @@
+@page
+@model API.Pages.Employees.IndexModel
+@{
+    ViewData["Title"] = "Employees";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Employees</h1>
+    <a class="btn btn-primary" asp-page="/Employees/Create">
+        <i class="bi bi-person-plus me-1"></i> Add Employee
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <table class="table table-hover align-middle mb-0">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Active</th>
+                <th>Created At</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model.Employees)
+            {
+                <tr>
+                    <td class="fw-semibold">@employee.FullName</td>
+                    <td>@employee.Email</td>
+                    <td>
+                        @if (employee.Role == EmployeeRole.Manager)
+                        {
+                            <span class="badge rounded-pill badge-manager">Manager</span>
+                        }
+                        else
+                        {
+                            <span class="badge rounded-pill badge-worker">Worker</span>
+                        }
+                    </td>
+                    <td>
+                        @if (employee.IsActive)
+                        {
+                            <span class="badge rounded-pill badge-active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge rounded-pill bg-secondary">Inactive</span>
+                        }
+                    </td>
+                    <td class="text-muted">@employee.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" asp-page="/Employees/Availability" asp-route-id="@employee.Id">
+                            Manage Availability
+                        </a>
+                        <form method="post" asp-page-handler="Deactivate" class="d-inline" onsubmit="return confirm('Deactivate @employee.FullName?');">
+                            <input type="hidden" name="id" value="@employee.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Deactivate</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (!Model.Employees.Any())
+    {
+        <div class="empty-state">
+            <i class="bi bi-people"></i>
+            <div class="mb-3">No employees yet.</div>
+            <a class="btn btn-primary" asp-page="/Employees/Create">Add your first employee</a>
+        </div>
+    }
+</div>

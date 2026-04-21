@@ -1,0 +1,50 @@
+@page
+@model API.Pages.Shifts.CreateModel
+@{
+    ViewData["Title"] = "Add Shift";
+}
+
+<a asp-page="/Shifts/Index" class="btn btn-sm btn-outline-secondary mb-3">&larr; Back to Schedule</a>
+
+<h1 class="mb-4">Add Shift</h1>
+
+<div class="card shadow-sm border-0" style="max-width: 640px;">
+    <div class="card-body">
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="Input.Date" class="form-control" required
+                           value="@Model.Input.Date.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" name="Input.StartTime" class="form-control" required
+                           value="@Model.Input.StartTime.ToString(@"hh\:mm")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">End Time</label>
+                    <input type="time" name="Input.EndTime" class="form-control" required
+                           value="@Model.Input.EndTime.ToString(@"hh\:mm")" />
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <label class="form-label">Assigned Employee</label>
+                <select asp-for="Input.AssignedEmployeeId" class="form-select">
+                    <option value="@Guid.Empty" selected>(Open shift — no one assigned)</option>
+                    @foreach (var employee in Model.Employees)
+                    {
+                        <option value="@employee.Id">@employee.FullName</option>
+                    }
+                </select>
+                <div class="form-text">Leave unassigned to create an open shift employees can pick up later.</div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Create Shift</button>
+                <a asp-page="/Shifts/Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

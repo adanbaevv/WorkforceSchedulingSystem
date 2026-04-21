@@ -1,0 +1,269 @@
+:root {
+    --brand-primary: #C8553D;
+    --brand-primary-dark: #A8432F;
+    --brand-accent: #F2CC8F;
+    --brand-bg: #FAF7F2;
+    --brand-surface: #FFFFFF;
+    --brand-text: #2D2A26;
+    --brand-muted: #8C8780;
+    --brand-border: #EAE7E2;
+
+    --pickup-blue: #3D5A80;
+    --drop-orange: #E58E26;
+    --active-green: #5FAD56;
+}
+
+/* No animations / transitions — snappy */
+*,
+*::before,
+*::after {
+    transition: none !important;
+    animation: none !important;
+}
+
+html, body {
+    background-color: var(--brand-bg);
+    color: var(--brand-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: 600;
+    color: var(--brand-text);
+}
+
+/* ================= Navbar ================= */
+.navbar.qadam-nav {
+    background-color: var(--brand-surface) !important;
+    border-bottom: 1px solid var(--brand-border);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+.navbar.qadam-nav .navbar-brand {
+    color: var(--brand-text) !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+}
+
+.navbar.qadam-nav .nav-link {
+    color: var(--brand-text) !important;
+    padding-top: 0.5rem;
+    padding-bottom: calc(0.5rem - 2px);
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    margin-right: 0.25rem;
+}
+
+.navbar.qadam-nav .nav-link:hover {
+    color: var(--brand-primary) !important;
+}
+
+.navbar.qadam-nav .nav-link.active {
+    color: var(--brand-primary) !important;
+    border-bottom-color: var(--brand-primary);
+}
+
+/* ================= Buttons ================= */
+.btn-primary {
+    --bs-btn-bg: var(--brand-primary);
+    --bs-btn-border-color: var(--brand-primary);
+    --bs-btn-hover-bg: var(--brand-primary-dark);
+    --bs-btn-hover-border-color: var(--brand-primary-dark);
+    --bs-btn-active-bg: var(--brand-primary-dark);
+    --bs-btn-active-border-color: var(--brand-primary-dark);
+    --bs-btn-disabled-bg: var(--brand-primary);
+    --bs-btn-disabled-border-color: var(--brand-primary);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--brand-primary);
+    --bs-btn-border-color: var(--brand-primary);
+    --bs-btn-hover-bg: var(--brand-primary);
+    --bs-btn-hover-border-color: var(--brand-primary);
+    --bs-btn-active-bg: var(--brand-primary);
+    --bs-btn-active-border-color: var(--brand-primary);
+}
+
+.btn-success {
+    --bs-btn-bg: var(--active-green);
+    --bs-btn-border-color: var(--active-green);
+    --bs-btn-hover-bg: #4E9446;
+    --bs-btn-hover-border-color: #4E9446;
+    --bs-btn-active-bg: #4E9446;
+    --bs-btn-active-border-color: #4E9446;
+}
+
+/* ================= Cards ================= */
+.card {
+    border-radius: 0.75rem !important;
+    border: 1px solid var(--brand-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    background-color: var(--brand-surface);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-header {
+    background-color: var(--brand-surface) !important;
+    border-bottom: 1px solid var(--brand-border);
+    padding: 1rem 1.5rem;
+}
+
+/* ================= KPI Dashboard Cards ================= */
+.kpi-card .kpi-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--brand-primary);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.kpi-card .kpi-value {
+    font-size: 2.25rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--brand-text);
+}
+
+.kpi-card .kpi-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--brand-muted);
+    font-weight: 500;
+}
+
+/* ================= Tables ================= */
+.table {
+    --bs-table-bg: var(--brand-surface);
+    color: var(--brand-text);
+    margin-bottom: 0;
+}
+
+.table > thead > tr > th {
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+    letter-spacing: 0.05em;
+    color: var(--brand-muted);
+    font-weight: 600;
+    border-bottom: 2px solid var(--brand-border) !important;
+    padding: 0.75rem;
+    background-color: var(--brand-surface);
+}
+
+.table > tbody > tr > td {
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+    border-bottom-color: var(--brand-border);
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-hover-bg: #F8F4ED;
+}
+
+/* ================= Badges ================= */
+.badge.rounded-pill {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.35em 0.7em;
+}
+
+.badge-active     { background-color: var(--active-green); color: #fff; }
+.badge-manager    { background-color: var(--pickup-blue); color: #fff; }
+.badge-worker     { background-color: var(--brand-border); color: var(--brand-text); }
+.badge-open       { background-color: var(--brand-accent); color: var(--brand-text); }
+.badge-pickup     { background-color: var(--pickup-blue); color: #fff; }
+.badge-drop       { background-color: var(--drop-orange); color: #fff; }
+
+/* ================= Avatar circle ================= */
+.avatar-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--brand-primary);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* ================= Progress bar ================= */
+.progress {
+    background-color: var(--brand-border);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: var(--brand-primary) !important;
+}
+
+/* ================= Proposal rows ================= */
+tr.proposal-assigned {
+    background-color: rgba(95, 173, 86, 0.08);
+}
+
+tr.proposal-unassigned {
+    background-color: #F5F3EE;
+    color: var(--brand-muted);
+}
+
+/* ================= Empty state ================= */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--brand-muted);
+}
+
+.empty-state i {
+    display: block;
+    font-size: 3rem;
+    color: var(--brand-border);
+    margin-bottom: 0.75rem;
+}
+
+/* ================= Footer ================= */
+.qadam-footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--brand-muted);
+    font-size: 0.875rem;
+}
+
+/* ================= Alerts ================= */
+.alert {
+    border-radius: 0.75rem;
+    border: 1px solid var(--brand-border);
+}
+
+/* ================= Forms ================= */
+.form-control, .form-select {
+    border-color: var(--brand-border);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 0.2rem rgba(200, 85, 61, 0.15);
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--brand-text);
+    font-size: 0.9rem;
+}

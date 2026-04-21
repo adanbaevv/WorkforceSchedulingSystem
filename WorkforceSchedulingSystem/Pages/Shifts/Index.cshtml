@@ -1,0 +1,177 @@
+@page
+@model API.Pages.Shifts.IndexModel
+@{
+    ViewData["Title"] = "Schedule";
+
+    var weekDays = new[]
+    {
+        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
+        DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
+    };
+
+    Func<IReadOnlyList<Domain.Entities.Shift>, DayOfWeek, List<Domain.Entities.Shift>> byDay =
+        (shifts, day) => shifts.Where(shift => shift.Date.DayOfWeek == day)
+                               .OrderBy(shift => shift.StartTime)
+                               .ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Schedule</h1>
+    <a class="btn btn-primary" asp-page="/Shifts/Create">
+        <i class="bi bi-plus-circle me-1"></i> Add Shift
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" class="d-flex flex-wrap align-items-center gap-2">
+            <a class="btn btn-outline-secondary"
+               asp-route-WeekStartDate="@Model.PreviousWeekStart.ToString("yyyy-MM-dd")">&larr; Previous week</a>
+
+            <label class="form-label mb-0 ms-2 me-1">Week starting:</label>
+            <input type="date" name="WeekStartDate" class="form-control" style="max-width:180px;"
+                   value="@Model.WeekStartDate.ToString("yyyy-MM-dd")" />
+            <button type="submit" class="btn btn-primary">Load</button>
+
+            <a class="btn btn-outline-secondary"
+               asp-route-WeekStartDate="@Model.NextWeekStart.ToString("yyyy-MM-dd")">Next week &rarr;</a>
+
+            <span class="text-muted ms-auto">
+                Showing @Model.WeekStartDate.ToString("MMM d") – @Model.WeekEndDate.ToString("MMM d, yyyy")
+                · @Model.Shifts.Count total shift(s)
+            </span>
+        </form>
+    </div>
+</div>
+
+@if (Model.Shifts.Count == 0 && Model.NextWeekShifts.Count == 0)
+{
+    <div class="card shadow-sm border-0">
+        <div class="empty-state">
+            <i class="bi bi-calendar-x"></i>
+            <div class="mb-3">No shifts in this week or the next.</div>
+            <a class="btn btn-primary" asp-page="/Shifts/Create">Add a shift</a>
+        </div>
+    </div>
+}
+else
+{
+    @if (Model.Shifts.Count > 0)
+    {
+        <div class="row g-3">
+            @foreach (var day in weekDays)
+            {
+                var offset = ((int)day - (int)DayOfWeek.Monday + 7) % 7;
+                var dayDate = Model.WeekStartDate.AddDays(offset);
+                var dayShifts = byDay(Model.Shifts, day);
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">@day, @dayDate.ToString("MMM d")</span>
+                            <span class="badge rounded-pill badge-worker">@dayShifts.Count shift(s)</span>
+                        </div>
+                        @if (dayShifts.Any())
+                        {
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Start</th>
+                                        <th>End</th>
+                                        <th>Employee</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var shift in dayShifts)
+                                    {
+                                        <tr>
+                                            <td>@shift.StartTime.ToString(@"hh\:mm")</td>
+                                            <td>@shift.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@Model.EmployeeNameOf(shift.AssignedEmployeeId)</td>
+                                            <td>
+                                                @switch (shift.Status)
+                                                {
+                                                    case ShiftStatus.Assigned:
+                                                        <span class="badge rounded-pill badge-active">Assigned</span>
+                                                        break;
+                                                    case ShiftStatus.OpenForPickup:
+                                                        <span class="badge rounded-pill badge-open">Open for pickup</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge rounded-pill bg-secondary">Unassigned</span>
+                                                        break;
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="card-body py-3 text-muted">No shifts scheduled.</div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.Shifts.Count == 0 && Model.NextWeekShifts.Count > 0)
+    {
+        <div class="alert alert-info border-0 shadow-sm">
+            <i class="bi bi-info-circle me-1"></i>
+            No shifts in the selected week. Showing next week instead.
+        </div>
+
+        <h3 class="mt-4 mb-3">Coming up next week <small class="text-muted">· @Model.NextWeekStart.ToString("MMM d") – @Model.NextWeekEnd.ToString("MMM d, yyyy")</small></h3>
+        <div class="row g-3">
+            @foreach (var day in weekDays)
+            {
+                var offset = ((int)day - (int)DayOfWeek.Monday + 7) % 7;
+                var dayDate = Model.NextWeekStart.AddDays(offset);
+                var dayShifts = byDay(Model.NextWeekShifts, day);
+                @if (dayShifts.Any())
+                {
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold">@day, @dayDate.ToString("MMM d")</span>
+                                <span class="badge rounded-pill badge-worker">@dayShifts.Count shift(s)</span>
+                            </div>
+                            <table class="table align-middle mb-0">
+                                <thead>
+                                    <tr><th>Start</th><th>End</th><th>Employee</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var shift in dayShifts)
+                                    {
+                                        <tr>
+                                            <td>@shift.StartTime.ToString(@"hh\:mm")</td>
+                                            <td>@shift.EndTime.ToString(@"hh\:mm")</td>
+                                            <td>@Model.EmployeeNameOf(shift.AssignedEmployeeId)</td>
+                                            <td>
+                                                @switch (shift.Status)
+                                                {
+                                                    case ShiftStatus.Assigned:
+                                                        <span class="badge rounded-pill badge-active">Assigned</span>
+                                                        break;
+                                                    case ShiftStatus.OpenForPickup:
+                                                        <span class="badge rounded-pill badge-open">Open for pickup</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge rounded-pill bg-secondary">Unassigned</span>
+                                                        break;
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+}

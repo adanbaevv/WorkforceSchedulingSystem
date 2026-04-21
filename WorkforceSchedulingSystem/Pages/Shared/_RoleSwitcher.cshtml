@@ -1,0 +1,32 @@
+@model IReadOnlyList<Domain.Entities.Employee>
+@inject Application.Common.Interfaces.ICurrentUserService CurrentUser
+
+<div class="dropdown role-switcher">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-person-circle me-1"></i>
+        Viewing as: <strong>@CurrentUser.CurrentUserName</strong>
+        <span class="text-muted">· @CurrentUser.CurrentUserRole</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li><h6 class="dropdown-header">Switch viewer</h6></li>
+        @foreach (var employee in Model.OrderByDescending(e => e.Role).ThenBy(e => e.FullName))
+        {
+            var isCurrent = CurrentUser.CurrentUserId == employee.Id;
+            <li>
+                <form method="post" asp-page="/SwitchUser" class="m-0">
+                    <input type="hidden" name="employeeId" value="@employee.Id" />
+                    <button type="submit" class="dropdown-item d-flex justify-content-between align-items-center @(isCurrent ? "active" : "")">
+                        <span>
+                            @employee.FullName
+                            <span class="text-muted small">· @(employee.Role == Domain.Enums.EmployeeRole.Manager ? "Manager" : "Worker")</span>
+                        </span>
+                        @if (isCurrent)
+                        {
+                            <i class="bi bi-check-lg"></i>
+                        }
+                    </button>
+                </form>
+            </li>
+        }
+    </ul>
+</div>

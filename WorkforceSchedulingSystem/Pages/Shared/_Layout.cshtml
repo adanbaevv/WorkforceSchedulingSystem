@@ -1,0 +1,104 @@
+@using Application.Common.Interfaces
+@using Application.Interfaces.Services
+@inject ICurrentUserService CurrentUser
+@inject IEmployeeService EmployeeService
+@{
+    var error = TempData["Error"] as string;
+    var success = TempData["Success"] as string;
+    var routePage = ViewContext.RouteData.Values["Page"]?.ToString() ?? "";
+    var role = CurrentUser.CurrentUserRole;
+
+    string NavClass(string pageRoot)
+    {
+        var isActive = string.Equals(routePage, pageRoot, StringComparison.OrdinalIgnoreCase)
+                       || routePage.StartsWith(pageRoot + "/", StringComparison.OrdinalIgnoreCase);
+        return isActive ? "nav-link active" : "nav-link";
+    }
+
+    var allEmployees = await EmployeeService.GetAllAsync();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Qadam</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/qadam.css" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg qadam-nav">
+        <div class="container-fluid">
+            <a class="navbar-brand" asp-page="/Index">
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="15" fill="#C8553D"/>
+                    <path d="M16 8 L16 22 M11 14 L16 8 L21 14" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Qadam</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav me-auto">
+                    @if (role == "Manager")
+                    {
+                        <li class="nav-item"><a class="@NavClass("/Index")" asp-page="/Index">Dashboard</a></li>
+                        <li class="nav-item"><a class="@NavClass("/Employees")" asp-page="/Employees/Index">Employees</a></li>
+                        <li class="nav-item"><a class="@NavClass("/Shifts")" asp-page="/Shifts/Index">Shifts</a></li>
+                        <li class="nav-item"><a class="@NavClass("/ShiftRequests")" asp-page="/ShiftRequests/Index">Requests</a></li>
+                        <li class="nav-item"><a class="@NavClass("/Schedule")" asp-page="/Schedule/Generate">Generate Schedule</a></li>
+                    }
+                    else
+                    {
+                        <li class="nav-item"><a class="@(routePage == "/Worker/Schedule" ? "nav-link active" : "nav-link")" asp-page="/Worker/Schedule">My Schedule</a></li>
+                        <li class="nav-item"><a class="@(routePage == "/Worker/Availability" ? "nav-link active" : "nav-link")" asp-page="/Worker/Availability">My Availability</a></li>
+                        <li class="nav-item"><a class="@(routePage == "/Worker/Requests" ? "nav-link active" : "nav-link")" asp-page="/Worker/Requests">My Requests</a></li>
+                        <li class="nav-item"><a class="@(routePage == "/Worker/Clock" ? "nav-link active" : "nav-link")" asp-page="/Worker/Clock">Clock In/Out</a></li>
+                    }
+                </ul>
+                <ul class="navbar-nav align-items-center gap-2">
+                    <li class="nav-item">
+                        @await Html.PartialAsync("_RoleSwitcher", allEmployees)
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link small text-muted" href="/swagger" target="_blank" title="API docs">
+                            <i class="bi bi-code-slash"></i> API
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-fluid py-4">
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @error
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(success))
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @success
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="qadam-footer">
+        Qadam · Smart shifts for Kyrgyz teams
+        · <a href="/swagger" class="text-decoration-none">API docs</a>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
